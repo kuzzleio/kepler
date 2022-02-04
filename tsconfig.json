@@ -11,10 +11,10 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "rootDir": "lib/",
+  "rootDir": "src/",
   "include": [
     "app.ts",
-    "lib/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

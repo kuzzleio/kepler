@@ -7,7 +7,7 @@
   ],
   "watch": [
     "app.ts",
-    "lib",
+    "src",
     "node_modules"
   ]
 }

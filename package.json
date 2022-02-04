@@ -1,8 +1,8 @@
 {
   "name": "kepler",
   "version": "1.0.0",
-  "description": "",
-  "author": "",
+  "description": "A simple amalytics system powered by Kuzzle",
+  "author": "Kuzzle Team <support@kuzzle.io>",
   "scripts": {
     "npm:docker": "docker-compose run kuzzle npm",
     "install:docker": "npm run npm:docker install",
