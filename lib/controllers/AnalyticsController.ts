@@ -9,28 +9,27 @@ export default class AnalyticsController extends Controller {
     this.definition = {
       actions: {
         track: {
-          handler: (request: KuzzleRequest) => this.track(request),
-          http: [{ verb: "post", path: "analytics/track" }]
+          handler: async (request: KuzzleRequest) => await this.track(request),
+          http: [{ verb: 'post', path: 'analytics/track' }]
         }
       }
     }
   }
 
   async track(request: KuzzleRequest) {
-    const product = request.getString('product');
+    const product = request.getString('p');
+    const user_hash = request.getString('u');
+    const action = request.getString('a');
+    const version = request.getString('v');
+    const tags = request.getBody();
 
-    try {
-      this.app.mutex.lock();
-      if (! await this.app.sdk.collection.exists('analytics', product)) {
-        this.app.log.debug(`Provisionning analytics index for product ${product}`);
-        await this.app.sdk.collection.create('analytics', product, {});
-        this.app.log.info(`Analytics index for product ${product} provisionned`);
-      }
-    } finally {
-      this.app.mutex.unlock();
-    }
+    const trackingPayload = { action, product, tags, user_hash, version };
 
-    await this.app.sdk.document.create('analytics', product, request.getBody());
-    this.app.log.debug(`Analytics document for product ${product} created`);
+    this.app.log.debug(`Analytics data reveived: ${JSON.stringify(trackingPayload)}`);
+    const doc = await this.app.sdk.document.create(
+      this.app.applicationConfig.analytics.index,
+      this.app.applicationConfig.analytics.collection,
+      trackingPayload);
+    this.app.log.debug(`Analytics document created: ${JSON.stringify(doc)}`);
   }
 }
