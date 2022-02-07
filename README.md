@@ -1,19 +1,30 @@
-# kepler
+# Kepler
 
-_An application running with [Kuzzle](https://github.com/kuzzleio/kuzzle)_
+## Installation
 
-## Installation and run
+Kepler is Kuzzle application and should be installed and deployed as described in [the Documentation](https://docs.kuzzle.io/core/2/guides/getting-started/deploy-your-application/).
 
-Requirement: 
- - Node.js >= 12
- - NPM >= 6
- - Docker
- - Docker-Compose
+## Usage
 
-First, install [Kourou](https://github.com/kuzzleio/kourou), the Kuzzle CLI: `npm install -g kourou`
+It expose an HTTP POST route `/_/analytics/track` to track events it takes the following parameters:
+- `a`: the user action name (required)
+- `p`: the product name (required)
+- `u`: the user identifier (required)
+- `v`: the product version (required)
 
-Then you need to start the services used by Kuzzle, Elasticsearch and Redis. You can run those services in the background with the following command: `kourou app:start-services`
+You can optionally provide `tags` in the request body.
 
-Finally you can start your application with `kourou app:run`.  
+## Example
 
-Under the hood this command simply run Node.js with Typescript as following: `node -r ts-node/register app.ts`
+```
+    curl -X POST -H "Content-Type: application/json" -d '{
+      "a": "product_view",
+      "p": "my_product",
+      "u": "user_id",
+      "v": "1.0.0",
+      "tags": {
+        "my_tag": "my_value",
+        "my_other_tag": "my_other_value"
+      }
+    }' http://localhost:7512/_/analytics/track
+```
