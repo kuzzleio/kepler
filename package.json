@@ -12,8 +12,8 @@
     "test": "npm run test:lint && npm run test:unit && npm run test:functional",
     "test:unit": "mocha",
     "test:functional": "cucumber-js --exit --fail-fast",
-    "test:lint": "eslint ./src --ext .ts --config .eslintrc.json",
-    "test:lint:fix": "eslint ./src --ext .ts --config .eslintrc.json --fix",
+    "test:lint": "eslint ./lib --ext .ts --config .eslintrc.json",
+    "test:lint:fix": "eslint ./lib --ext .ts --config .eslintrc.json --fix",
     "build": "tsc --build tsconfig.json",
     "clean": "touch app.ts && npm run build | grep TSFILE | cut -d' ' -f 2 | xargs rm"
   },
