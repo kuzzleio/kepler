@@ -1,10 +1,9 @@
-name: Push checks
+name: Production
 
 on:
   push:
     branches:
       - master
-
 jobs:
   lint:
     name: Lint
@@ -26,4 +25,4 @@ jobs:
         with:
           node-version: "12"
       - name: Run linter
-        run: npm ci && npm run lint
+        run: npm ci && npm run test:lint
