@@ -1,0 +1,10 @@
+.github/
+node_modules/
+.eslintrc.json
+.eslintignore
+.gitignore
+.git
+.mocharc.json
+docker-compose.yml
+README.md
+ergol.config.json
