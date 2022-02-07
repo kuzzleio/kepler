@@ -17,14 +17,14 @@ You can optionally provide `tags` in the request body.
 ## Example
 
 ```
-    curl -X POST -H "Content-Type: application/json" -d '{
-      "a": "product_view",
-      "p": "my_product",
-      "u": "user_id",
-      "v": "1.0.0",
-      "tags": {
-        "my_tag": "my_value",
-        "my_other_tag": "my_other_value"
-      }
-    }' http://localhost:7512/_/analytics/track
+curl -X POST -H "Content-Type: application/json" -d '{
+  "a": "product_view",
+  "p": "my_product",
+  "u": "user_id",
+  "v": "1.0.0",
+  "tags": {
+    "my_tag": "my_value",
+    "my_other_tag": "my_other_value"
+  }
+}' http://localhost:7512/_/analytics/track
 ```
