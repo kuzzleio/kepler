@@ -1,4 +1,4 @@
-name: Kepler Companion workflow
+name: Tests workflow
 
 on:
   pull_request:
@@ -14,8 +14,12 @@ env:
 
 jobs:
   lint:
-    name: Lint
+    name: Lint ${{ matrix.project }}
     runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+      matrix: 
+        project: ['kepler', 'kepler-companion']
     steps:
       - uses: actions/checkout@v2
       - name: Cache node modules
@@ -33,4 +37,4 @@ jobs:
         with:
           node-version: "12"
       - name: Run linter
-        run: npm ci --prefix kepler-companion && npm run test:lint --prefix kepler-companion
+        run: npm ci --prefix ${{ matrix.project }} && npm run test:lint --prefix ${{ matrix.project }}
