@@ -18,12 +18,12 @@ export default class AnalyticsController extends Controller {
 
   async track(request: KuzzleRequest) {
     const product = request.getString('p');
-    const user_hash = request.getString('u');
+    const user = request.getString('u');
     const action = request.getString('a');
     const version = request.getString('v');
     const tags = request.getBody();
 
-    const trackingPayload = { action, product, tags, user_hash, version };
+    const trackingPayload = { action, product, tags, user, version };
 
     this.app.log.debug(`Analytics data reveived: ${JSON.stringify(trackingPayload)}`);
     const doc = await this.app.sdk.document.create(

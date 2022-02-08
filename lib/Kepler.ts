@@ -43,7 +43,7 @@ export default class Kepler extends Backend {
             dynamic: 'false',
             properties: {}
           } as MappingsProperties,
-          userHash: { type: 'keyword' },
+          user: { type: 'keyword' },
         } as JSONObject,
       },
     },
