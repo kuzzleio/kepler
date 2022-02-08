@@ -2,7 +2,7 @@ name: Deployments
 
 on:
   workflow_run:
-    workflows: [Tests workflow]
+    workflows: [Tests]
     branches: master
     types: [completed]
 
