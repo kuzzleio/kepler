@@ -15,3 +15,7 @@ app.js.map
 lib/**/*.d.ts
 lib/**/*.js.map
 lib/**/*.js
+
+index.js
+index.d.ts
+index.js.map

@@ -1,4 +1,4 @@
-name: Main workflow
+name: Kepler workflow
 
 on:
   pull_request:
@@ -15,12 +15,8 @@ env:
 
 jobs:
   lint:
-    name: Lint ${{ matrix.project }}
+    name: Lint
     runs-on: ubuntu-18.04
-    strategy:
-      matrix: 
-        project: ['kepler', 'kepler-companion']
-      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - name: Cache node modules
@@ -38,7 +34,7 @@ jobs:
         with:
           node-version: "12"
       - name: Run linter
-        run: npm ci --prefix ${{ matrix.project }} && npm run test:lint --prefix ${{ matrix.project }}
+        run: npm ci --prefix kepler && npm run test:lint --prefix kepler
 
   build:
     name: Build Kepler Docker image
@@ -62,7 +58,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build Docker image without pushing it
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/master' && github.event_name != 'push'
         uses: docker/build-push-action@v2
         with:
           push: false
@@ -70,7 +66,7 @@ jobs:
           dockerfile: kepler/Dockerfile
           context: kepler
       - name: Build and push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: docker/build-push-action@v2
         with:
           push: true
