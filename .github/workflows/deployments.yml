@@ -6,6 +6,9 @@ on:
     branches: master
     types: [completed]
 
+env:
+  DOCKER_IMAGE: "kuzzleio/kepler:latest"
+
 jobs:
   deploy-kepler:
     name: Build Kepler Docker image
