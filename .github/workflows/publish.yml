@@ -1,4 +1,4 @@
-name: Deployments
+name: Publish package and Docker image
 
 on:
   workflow_run:
