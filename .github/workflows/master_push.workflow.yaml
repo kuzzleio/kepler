@@ -1,0 +1,84 @@
+name: Push on master branch
+
+on:
+  push:
+    branches:
+      - master
+env:
+  NODE_VERSION: "14"
+  DOCKER_IMAGE: "kuzzleio/kepler:latest"
+  KUBECONFIG: "~/.kube/config"
+
+jobs:
+  lint:
+    name: Lint ${{ matrix.project }}
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+      matrix: 
+        project: ['kepler', 'kepler-companion']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - uses: actions/setup-node@v1.4.4
+        with:
+          node-version: "12"
+      - name: Run linter
+        run: npm ci --prefix ${{ matrix.project }} && npm run test:lint --prefix ${{ matrix.project }}
+  publish-kepler-image:
+    name: Build and publish Kepler Docker image on Dockerhub
+    runs-on: ubuntu-18.04
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}
+          file: kepler/Dockerfile
+          context: kepler
+  deploy-kepler-on-kosmos:
+    name: Deploy latest Kepler image on Kosmos
+    runs-on: ubuntu-18.04
+    needs: [publish-kepler-image]
+    environment: Kosmos
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install SCW CLI
+        run: |
+          sudo curl -o /usr/local/bin/scw -L "https://github.com/scaleway/scaleway-cli/releases/download/v2.4.0/scw-2.4.0-linux-x86_64"
+          sudo chmod +x /usr/local/bin/scw
+      - name: Fetch the Kubeconfig file
+        run: scw k8s kubeconfig get ${{ secrets.KAPSULE_ID }} > $KUBECONFIG
+        env:
+          KAPSULE_ID: ${{ secrets.KAPSULE_ID }}
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_DEFAULT_REGION: ${{ secrets.SCW_DEFAULT_REGION }}
+          SCW_DEFAULT_ZONE: ${{ secrets.SCW_DEFAULT_ZONE }}
+      - name: Test get node
+        run: |
+          kubectl get node
+      
