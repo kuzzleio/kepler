@@ -18,6 +18,13 @@ export type KeplerCompanionConfiguration = {
 
 export type KeplerCompanionMode = 'browser' | 'node';
 
+export type TrackingOpts = {
+  action: string,
+  product: string,
+  version: string,
+  tags?: { [key: string]: string },
+}
+
 export default class KeplerCompanion {
   public config: KeplerCompanionConfiguration = {
     server: {
@@ -58,25 +65,40 @@ export default class KeplerCompanion {
     this.config.analytics.enabled = false;
   }
 
-  public track(action: string, product: string, version: string, tags: { [key: string]: string } = {}) {
+  public track(opts: TrackingOpts, timeout = 1000) {
     if (!this.config.analytics.enabled) {
       return;
     }
-    return this._track(action, product, version, tags);
+    const innerTrack = this._track.bind(this);
+    return Promise.race([
+      new Promise(() => {
+        try {
+          return innerTrack(opts);
+        } catch (_) { /* Analytics should not interfer with user process */ }
+      }),
+      new Promise((resolve) => setTimeout(resolve, timeout))
+    ]);
   }
 
-  private async _track(action: string, product: string, version: string, tags: { [key: string]: string } = {}) {
+  private async _track(opts: TrackingOpts) {
     const user = this.forgeUserID();
-    const url = `${this.server_url}?a=${action}&p=${product}&v=${version}&u=${user}`;
+    const url = `${this.server_url}?a=${opts.action}&p=${opts.product}&v=${opts.version}&u=${user}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(tags),
+      body: JSON.stringify(opts.tags || {}),
     });
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
   }
 }
+const a = new KeplerCompanion();
+a.track({
+  action: 'test',
+  product: 'test',
+  version: 'test',
+}).then();
+

@@ -1,6 +1,6 @@
 {
   "name": "kepler-companion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kepler analytics toolkit for client side",
   "main": "index.js",
   "scripts": {
