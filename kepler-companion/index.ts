@@ -95,10 +95,3 @@ export default class KeplerCompanion {
     }
   }
 }
-const a = new KeplerCompanion();
-a.track({
-  action: 'test',
-  product: 'test',
-  version: 'test',
-}).then();
-
