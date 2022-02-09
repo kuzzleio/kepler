@@ -1,7 +1,7 @@
 {
   "name": "kepler-companion",
   "version": "1.0.0",
-  "description": "",
+  "description": "Kepler analytics toolkit for client side",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/kuzzleio/kepler.git"
   },
   "author": "Kuzzle Team <support@kuzzle.io>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/kuzzleio/kepler/issues"
   },

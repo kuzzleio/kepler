@@ -37,7 +37,7 @@ export default class KeplerCompanion {
 
   public get server_url() {
     const config = this.config.server;
-    return `http${config.ssl ? 's' : ''}${config.host}:${config.port}${config.trackingPath}`;
+    return `http${config.ssl ? 's' : ''}://${config.host}:${config.port}${config.trackingPath}`;
   }
 
   private forgeUserID(): string {
@@ -58,15 +58,14 @@ export default class KeplerCompanion {
     this.config.analytics.enabled = false;
   }
 
-  public track(action: string, product: string, version: string, tags?: { [key: string]: string }) {
+  public track(action: string, product: string, version: string, tags: { [key: string]: string } = {}) {
     if (!this.config.analytics.enabled) {
-      console.debug('Analytics are disabled');
       return;
     }
     return this._track(action, product, version, tags);
   }
 
-  private async _track(action: string, product: string, version: string, tags?: { [key: string]: string }) {
+  private async _track(action: string, product: string, version: string, tags: { [key: string]: string } = {}) {
     const user = this.forgeUserID();
     const url = `${this.server_url}?a=${action}&p=${product}&v=${version}&u=${user}`;
     const response = await fetch(url, {
