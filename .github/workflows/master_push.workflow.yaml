@@ -86,7 +86,7 @@ jobs:
       - name: Deploy Kepler using Helm
         run: |
           helm repo add kuzzle https://kuzzleio.github.io/helm-charts/
-          if helm upgrade kepler kuzzle/kuzzle --kubeconfig ./kubeconfig --namespace analytics --reuse-values --force --wait --timeout 1m; then
+          if helm upgrade kepler kuzzle/kuzzle --kubeconfig ./kubeconfig --install --namespace analytics --reuse-values --wait --timeout 1m; then
             echo "deployment succeeded!"
           else
             echo "DEPLOYMENT FAILED! TRYING TO ROLLBACK"
