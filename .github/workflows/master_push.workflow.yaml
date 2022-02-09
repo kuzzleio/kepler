@@ -46,9 +46,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci --prefix kepler-companion
-      - run: npm run build --prefix kepler-companion
-      - run: npm publish --prefix kepler-companion
+      - run: |
+          cd kepler-companion
+          npm ci
+          npm run build
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
