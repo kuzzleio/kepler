@@ -36,6 +36,22 @@ jobs:
       - name: Run linter
         run: npm ci --prefix ${{ matrix.project }} && npm run test:lint --prefix ${{ matrix.project }}
 
+  publish-kepler-companion:
+    name: Publish Kepler Companion on NPM.js
+    runs-on: ubuntu-18.04
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   publish-kepler-image:
     name: Build and publish Kepler Docker image on Dockerhub
     runs-on: ubuntu-18.04
