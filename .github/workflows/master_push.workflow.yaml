@@ -83,8 +83,10 @@ jobs:
             -H 'Accept: application/vnd.github.v3.raw' \
             -o kepler.yaml \
             -L https://api.github.com/repos/kuzzleio/kosmos/contents/tf/helm_values/kepler/kepler.yaml?ref=master
-          cat kepler.yaml
-      - name: Test get node
+      - name: Install Helm 3
         run: |
-          kubectl get node --kubeconfig ./kubeconfig
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      - name: List Helm releases
+        run: |
+          helm list -n analytics --kubeconfig ./kubeconfig
       
