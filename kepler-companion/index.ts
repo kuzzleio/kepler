@@ -22,7 +22,7 @@ export type TrackingOpts = {
   action: string,
   product: string,
   version: string,
-  tags?: { [key: string]: string },
+  tags?: { [key: string]: any },
 }
 
 export default class KeplerCompanion {
@@ -72,7 +72,7 @@ export default class KeplerCompanion {
 
     if (process.env.CI) {
       opts.tags = opts.tags || {};
-      opts.tags.environment = 'CI';
+      opts.tags.ci = true;
     }
 
     const innerTrack = this._track.bind(this);

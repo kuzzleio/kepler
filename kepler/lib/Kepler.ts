@@ -40,8 +40,10 @@ export default class Kepler extends Backend {
           product: { type: 'keyword' },
           version: { type: 'keyword' },
           tags: { 
-            dynamic: 'false',
-            properties: {}
+            dynamic: 'true',
+            properties: {
+              ci: { type: 'boolean' },
+            }
           } as MappingsProperties,
           user: { type: 'keyword' },
         } as JSONObject,
