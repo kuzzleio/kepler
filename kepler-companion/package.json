@@ -1,6 +1,6 @@
 {
   "name": "kepler-companion",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Kepler analytics toolkit for client side",
   "main": "index.js",
   "scripts": {
@@ -21,8 +21,7 @@
   "homepage": "https://github.com/kuzzleio/kepler#readme",
   "dependencies": {
     "getmac": "^5.20.0",
-    "lodash": "^4.17.21",
-    "node-fetch": "^2.6.7"
+    "axios": "^0.25.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.16",

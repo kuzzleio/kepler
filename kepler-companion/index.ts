@@ -1,19 +1,14 @@
 import getMAC from 'getmac';
 import * as crypto from 'crypto';
-import fetch from 'node-fetch';
-import { merge } from 'lodash';
+import axios from 'axios';
 
 export type KeplerCompanionConfiguration = {
-  server?: {
-    host: string,
-    port: number,
-    ssl: boolean,
-    trackingPath: string,
-  },
-  analytics?: {
-    enabled: boolean,
-    mode: KeplerCompanionMode,
-  }
+  host?: string,
+  port?: number,
+  ssl?: boolean,
+  trackingPath?: string,
+  enabled?: boolean,
+  mode?: KeplerCompanionMode,
 };
 
 export type KeplerCompanionMode = 'browser' | 'node';
@@ -27,29 +22,25 @@ export type TrackingOpts = {
 
 export default class KeplerCompanion {
   public config: KeplerCompanionConfiguration = {
-    server: {
-      host: 'analytics.app.kuzzle.io',
-      port: 443,
-      ssl: true,
-      trackingPath: '/_/analytics/track'
-    },
-    analytics: {
-      enabled: true,
-      mode: 'node',
-    },
+    host: 'analytics.app.kuzzle.io',
+    port: 443,
+    ssl: true,
+    trackingPath: '/_/analytics/track',
+    enabled: true,
+    mode: 'node',
   };
-  constructor(config?: KeplerCompanionConfiguration) {
-    this.config = config ? merge(this.config, config) : this.config;
+
+  constructor(config = {}) {
+    this.config = { ...this.config, ...config };
   }
 
   public get server_url() {
-    const config = this.config.server;
-    return `http${config.ssl ? 's' : ''}://${config.host}:${config.port}${config.trackingPath}`;
+    return `http${this.config.ssl ? 's' : ''}://${this.config.host}:${this.config.port}${this.config.trackingPath}`;
   }
 
   private forgeUserID(): string {
     let identifier: string;
-    switch (this.config.analytics.mode) {
+    switch (this.config.mode) {
       case 'browser':
         if (typeof window === 'undefined') {
           throw Error('Kepler Companion browser mode is enabled but you are not in a browser');
@@ -70,11 +61,11 @@ export default class KeplerCompanion {
   }
 
   public turnOff() {
-    this.config.analytics.enabled = false;
+    this.config.enabled = false;
   }
 
   public track(opts: TrackingOpts, timeout = 1000) {
-    if (!this.config.analytics.enabled) {
+    if (!this.config.enabled) {
       return;
     }
 
@@ -96,16 +87,16 @@ export default class KeplerCompanion {
 
   private async _track(opts: TrackingOpts) {
     const user = this.forgeUserID();
-    const url = `${this.server_url}?a=${opts.action}&p=${opts.product}&v=${opts.version}&u=${user}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    await axios({
+      method: 'post',
+      url: this.server_url,
+      data: opts.tags || {},
+      params: {
+        a: opts.action,
+        p: opts.product,
+        v: opts.version,
+        u: user,
       },
-      body: JSON.stringify(opts.tags || {}),
     });
-    if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
-    }
   }
 }
