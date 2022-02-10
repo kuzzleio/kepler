@@ -66,9 +66,15 @@ export default class KeplerCompanion {
   }
 
   public track(opts: TrackingOpts, timeout = 1000) {
-    if (!this.config.analytics.enabled || process.env.CI) {
+    if (!this.config.analytics.enabled) {
       return;
     }
+
+    if (process.env.CI) {
+      opts.tags = opts.tags || {};
+      opts.tags.environment = 'CI';
+    }
+
     const innerTrack = this._track.bind(this);
     return Promise.race([
       new Promise(() => {
