@@ -66,7 +66,7 @@ export default class KeplerCompanion {
   }
 
   public track(opts: TrackingOpts, timeout = 1000) {
-    if (!this.config.analytics.enabled) {
+    if (!this.config.analytics.enabled || process.env.CI) {
       return;
     }
     const innerTrack = this._track.bind(this);
