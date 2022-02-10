@@ -22,7 +22,7 @@ export type TrackingOpts = {
   action: string,
   product: string,
   version: string,
-  tags?: { [key: string]: string },
+  tags?: { [key: string]: any },
 }
 
 export default class KeplerCompanion {
@@ -66,9 +66,15 @@ export default class KeplerCompanion {
   }
 
   public track(opts: TrackingOpts, timeout = 1000) {
-    if (!this.config.analytics.enabled || process.env.CI) {
+    if (!this.config.analytics.enabled) {
       return;
     }
+
+    if (process.env.CI) {
+      opts.tags = opts.tags || {};
+      opts.tags.ci = true;
+    }
+
     const innerTrack = this._track.bind(this);
     return Promise.race([
       new Promise(() => {

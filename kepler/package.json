@@ -1,6 +1,6 @@
 {
   "name": "kepler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple amalytics system powered by Kuzzle",
   "author": "Kuzzle Team <support@kuzzle.io>",
   "scripts": {
