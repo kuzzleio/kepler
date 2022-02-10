@@ -51,8 +51,16 @@ export default class KeplerCompanion {
     let identifier: string;
     switch (this.config.analytics.mode) {
       case 'browser':
-        identifier = 'browser';
-        break;
+        if (typeof window === 'undefined') {
+          throw Error('Kepler Companion browser mode is enabled but you are not in a browser');
+        }
+        identifier = window.localStorage.getItem('kepler-user-id');
+
+        if (identifier === null) {
+          identifier = crypto.randomBytes(16).toString('hex');
+          window.localStorage.setItem('kepler-user-id', identifier);
+        }
+      break;
       case 'node':
         identifier = getMAC();
       break;
