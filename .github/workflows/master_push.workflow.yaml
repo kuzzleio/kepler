@@ -7,7 +7,7 @@ on:
 
 env:
   NODE_VERSION: "14"
-  DOCKER_IMAGE: "kuzzleio/kepler:latest"
+  DOCKER_IMAGE: "kuzzleio/kepler"
 
 jobs:
   lint:
@@ -69,11 +69,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Get current version from package.json
+        id: vars
+        run: |
+          cd kepler
+          echo ::set-output name=docker_tag::$(cat package.json | jq .version -r) 
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}
+          tags: ${{ env.DOCKER_IMAGE }}:${{ steps.vars.outputs.docker_tag }}
           file: kepler/Dockerfile
           context: kepler
 
@@ -101,10 +106,15 @@ jobs:
       - name: Install Helm 3
         run: |
           curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      - name: Get current version from package.json
+        id: vars
+        run: |
+          cd kepler
+          echo ::set-output name=docker_tag::$(cat package.json | jq .version -r) 
       - name: Deploy Kepler using Helm
         run: |
           helm repo add kuzzle https://kuzzleio.github.io/helm-charts/
-          if helm upgrade kepler kuzzle/kuzzle --kubeconfig ./kubeconfig --install --namespace analytics --reuse-values --wait --timeout 1m; then
+          if helm upgrade kepler kuzzle/kuzzle --kubeconfig ./kubeconfig --install --namespace analytics --reuse-values --set image.tag=${{ steps.vars.outputs.docker_tag }} --wait --timeout 1m; then
             echo "deployment succeeded!"
           else
             echo "DEPLOYMENT FAILED! TRYING TO ROLLBACK"
