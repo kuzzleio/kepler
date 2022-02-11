@@ -1,6 +1,6 @@
 import getMAC from 'getmac';
 import * as crypto from 'crypto';
-import axios from 'axios';
+import { Http, Kuzzle } from 'kuzzle-sdk';
 
 export type KeplerCompanionConfiguration = {
   host?: string,
@@ -8,10 +8,7 @@ export type KeplerCompanionConfiguration = {
   ssl?: boolean,
   trackingPath?: string,
   enabled?: boolean,
-  mode?: KeplerCompanionMode,
 };
-
-export type KeplerCompanionMode = 'browser' | 'node';
 
 export type TrackingOpts = {
   action: string,
@@ -21,43 +18,35 @@ export type TrackingOpts = {
 }
 
 export default class KeplerCompanion {
+  private sdk: Kuzzle;
   public config: KeplerCompanionConfiguration = {
     host: 'analytics.app.kuzzle.io',
     port: 443,
     ssl: true,
     trackingPath: '/_/analytics/track',
     enabled: true,
-    mode: 'node',
   };
 
   constructor(config = {}) {
     this.config = { ...this.config, ...config };
+    this.sdk = new Kuzzle(
+      new Http(
+        this.config.host, 
+        { port: this.config.port, ssl: this.config.ssl }
+      )
+    );
   }
 
-  public get server_url() {
-    return `http${this.config.ssl ? 's' : ''}://${this.config.host}:${this.config.port}${this.config.trackingPath}`;
-  }
-
-  private forgeUserID(): string {
-    let identifier: string;
-    switch (this.config.mode) {
-      case 'browser':
-        if (typeof window === 'undefined') {
-          throw Error('Kepler Companion browser mode is enabled but you are not in a browser');
-        }
-        identifier = window.localStorage.getItem('kepler-user-id');
-
-        if (identifier === null) {
-          identifier = crypto.randomBytes(16).toString('hex');
-          window.localStorage.setItem('kepler-user-id', identifier);
-        }
-      break;
+  private getUserId(mode: 'node' | 'browser'): string {
+    switch (mode) {
       case 'node':
-        identifier = getMAC();
-      break;
+        return getMAC();
+      case 'browser':
+        if (! window.localStorage.getItem('kepler-user-id')) {
+          console.log('Kepler: generating user id');
+        }
+        return 'test';
     }
-
-    return crypto.createHash('sha256').update(identifier).digest('hex');
   }
 
   public turnOff() {
@@ -86,17 +75,20 @@ export default class KeplerCompanion {
   }
 
   private async _track(opts: TrackingOpts) {
-    const user = this.forgeUserID();
-    await axios({
-      method: 'post',
-      url: this.server_url,
-      data: opts.tags || {},
-      params: {
+    const user = this.getUserId(typeof window !== 'undefined' ? 'browser' : 'node');
+    try {
+      await this.sdk.connect();
+      await this.sdk.query({
+        controller: 'analytics',
+        action: 'track',
         a: opts.action,
         p: opts.product,
         v: opts.version,
         u: user,
-      },
-    });
+        body: opts.tags || {},
+      });
+    } finally {
+      this.sdk.disconnect();
+    }
   }
 }

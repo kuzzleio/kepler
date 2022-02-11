@@ -20,8 +20,11 @@
   },
   "homepage": "https://github.com/kuzzleio/kepler#readme",
   "dependencies": {
-    "getmac": "^5.20.0",
-    "axios": "^0.25.0"
+    "axios": "^0.25.0",
+    "getmac": "^5.20.0"
+  },
+  "peerDependencies": {
+    "kuzzle-sdk": "^7.0.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.16",
