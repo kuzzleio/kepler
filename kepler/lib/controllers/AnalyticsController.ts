@@ -1,5 +1,6 @@
 import { Controller, KuzzleRequest } from "kuzzle";
 import Kepler from "../Kepler";
+import * as crypto from 'crypto';
 
 export default class AnalyticsController extends Controller {
   public app: Kepler;
@@ -23,7 +24,14 @@ export default class AnalyticsController extends Controller {
     const version = request.getString('v');
     const tags = request.getBody();
 
-    const trackingPayload = { action, product, tags, user, version };
+    const trackingPayload = { 
+      action,
+      product,
+      tags,
+      // To uniformize the tracking data, we hash the user id here
+      user: crypto.createHash('sha256').update(user).digest('hex'), 
+      version
+    };
 
     this.app.log.debug(`Analytics data reveived: ${JSON.stringify(trackingPayload)}`);
     const doc = await this.app.sdk.document.create(
