@@ -12,9 +12,9 @@ app.js
 app.d.ts
 app.js.map
 
-lib/**/*.d.ts
-lib/**/*.js.map
-lib/**/*.js
+*/lib/**/*.d.ts
+*/lib/**/*.js.map
+*/lib/**/*.js
 
 index.js
 index.d.ts
