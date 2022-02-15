@@ -1,6 +1,6 @@
 import getMAC from 'getmac';
-import * as crypto from 'crypto';
 import { Http, Kuzzle } from 'kuzzle-sdk';
+const crypto = typeof window === 'undefined' ? require('crypto') : window.crypto;
 
 export type KeplerCompanionConfiguration = {
   host?: string;
@@ -23,7 +23,7 @@ export type TrackingOpts = {
  */
 function generateUniqueIdForBrowser(): string {
   const array = new Uint32Array(8)
-  window.crypto.getRandomValues(array)
+  crypto.getRandomValues(array)
   let str = ''
   for (let i = 0; i < array.length; i++) {
     str += (i < 2 || i > 5 ? '' : '-') + array[i].toString(16).slice(-4)
@@ -55,7 +55,7 @@ export default class KeplerCompanion {
     let id: any;
     switch (mode) {
       case 'node':
-        id = getMAC();
+        id = crypto.createHash('sha256').update(getMAC()).digest('hex');
       break;
       case 'browser':
         id = window.localStorage.getItem(`${product}-kepler-id`);
@@ -69,11 +69,11 @@ export default class KeplerCompanion {
     return id;
   }
 
-  public turnOff() {
+  public turnOff(): void {
     this.config.enabled = false;
   }
 
-  public track(opts: TrackingOpts, timeout = 1000) {
+  public track(opts: TrackingOpts, timeout = 1000): Promise<unknown> | void {
     if (!this.config.enabled) {
       return;
     }
@@ -83,16 +83,13 @@ export default class KeplerCompanion {
       opts.tags.ci = true;
     }
 
-    const innerTrack = this._track.bind(this);
     return Promise.race([
-      new Promise(() => {
-        return innerTrack(opts).catch(() => { /* Analytics should not interfer with user process */ });
-      }),
+      this._track(opts).catch(() => { /* Analytics should not interfer with user process */ }),
       new Promise((resolve) => setTimeout(resolve, timeout))
     ]);
   }
 
-  private async _track(opts: TrackingOpts) {
+  private async _track(opts: TrackingOpts): Promise<void> {
     const user = this.getUserId(typeof window !== 'undefined' ? 'browser' : 'node', opts.product);
     try {
       await this.sdk.connect();
