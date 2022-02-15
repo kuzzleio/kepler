@@ -37,16 +37,22 @@ export default class KeplerCompanion {
     );
   }
 
-  private getUserId(mode: 'node' | 'browser'): string {
+  private getUserId(mode: 'node' | 'browser', product: string): string {
+    let id: string;
     switch (mode) {
       case 'node':
-        return getMAC();
+        id = crypto.createHash('sha256').update(getMAC()).digest('hex');
+      break;
       case 'browser':
-        if (! window.localStorage.getItem('kepler-user-id')) {
-          console.log('Kepler: generating user id');
+        id = window.localStorage.getItem(`${product}-kepler-id`);
+        if (! id) {
+          id = generateUniqueIdForBrowser();
+          window.localStorage.setItem(`${product}-kepler-id`, id);
         }
-        return 'test';
+      break;
     }
+
+    return id;
   }
 
   public turnOff() {
@@ -75,7 +81,7 @@ export default class KeplerCompanion {
   }
 
   private async _track(opts: TrackingOpts) {
-    const user = this.getUserId(typeof window !== 'undefined' ? 'browser' : 'node');
+    const user = this.getUserId(typeof window !== 'undefined' ? 'browser' : 'node', opts.product);
     try {
       await this.sdk.connect();
       await this.sdk.query({
@@ -91,4 +97,18 @@ export default class KeplerCompanion {
       this.sdk.disconnect();
     }
   }
+}
+
+/**
+ * This is a function gave by Mozilla MDN to generate 
+ * an UUID compatible with all browsers (HTTPS AND HTTP) and using vanilla JS
+ */
+function generateUniqueIdForBrowser(): string {
+  const array = new Uint32Array(8)
+  window.crypto.getRandomValues(array)
+  let str = ''
+  for (let i = 0; i < array.length; i++) {
+    str += (i < 2 || i > 5 ? '' : '-') + array[i].toString(16).slice(-4)
+  }
+  return str
 }
