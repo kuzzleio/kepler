@@ -13,7 +13,8 @@
   },
   "rootDir": "./",
   "include": [
-    "index.ts"
+    "index.ts",
+    "KeplerCompanion.ts"
   ],
   "exclude": [
     "node_modules"
