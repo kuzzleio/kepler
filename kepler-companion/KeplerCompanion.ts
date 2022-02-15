@@ -72,9 +72,7 @@ export default class KeplerCompanion {
     const innerTrack = this._track.bind(this);
     return Promise.race([
       new Promise(() => {
-        try {
-          return innerTrack(opts);
-        } catch (_) { /* Analytics should not interfer with user process */ }
+        return innerTrack(opts).catch(() => { /* Analytics should not interfer with user process */ });
       }),
       new Promise((resolve) => setTimeout(resolve, timeout))
     ]);

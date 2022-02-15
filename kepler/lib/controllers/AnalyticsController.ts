@@ -1,4 +1,4 @@
-import { Controller, KuzzleRequest } from "kuzzle";
+import { Controller, ExternalServiceError, KuzzleRequest } from "kuzzle";
 import Kepler from "../Kepler";
 import * as crypto from 'crypto';
 import fetch from 'node-fetch';
@@ -21,9 +21,8 @@ export default class AnalyticsController extends Controller {
   private async getCountryFromIP(ip: string) {
     try {
       const response = await fetch(`https://api.iplocation.net?ip=${ip}`);
-      console.log(response)
       if (! response.ok) {
-        throw new Error(response.statusText);
+        throw new ExternalServiceError(response.statusText);
       }
 
       const { country_name } = await response.json();
@@ -50,10 +49,7 @@ export default class AnalyticsController extends Controller {
     };
 
     if (request.context.connection.misc.headers['x-real-ip']) {
-      const country = await Promise.race([
-        this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']), 
-        new Promise((resolve) => setTimeout(resolve, 1000))
-      ]);
+      const country = await this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']);
 
       if (country) {
         trackingPayload.tags = { ...trackingPayload.tags, country }

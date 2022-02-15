@@ -43,6 +43,7 @@ export default class Kepler extends Backend {
             dynamic: 'true',
             properties: {
               ci: { type: 'boolean' },
+              country: { type: 'keyword' },
             }
           } as MappingsProperties,
           user: { type: 'keyword' },
