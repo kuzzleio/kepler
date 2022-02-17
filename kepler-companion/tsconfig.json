@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ES6"],
+    "lib": ["ES6", "DOM"],
     "declaration": true,
     "listEmittedFiles": true,
     "module": "commonjs",
@@ -13,7 +13,8 @@
   },
   "rootDir": "./",
   "include": [
-    "index.ts"
+    "index.ts",
+    "KeplerCompanion.ts"
   ],
   "exclude": [
     "node_modules"

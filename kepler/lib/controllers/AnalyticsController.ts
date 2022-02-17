@@ -1,5 +1,7 @@
-import { Controller, KuzzleRequest } from "kuzzle";
+import { Controller, ExternalServiceError, KuzzleRequest } from "kuzzle";
 import Kepler from "../Kepler";
+import * as crypto from 'crypto';
+import fetch from 'node-fetch';
 
 export default class AnalyticsController extends Controller {
   public app: Kepler;
@@ -16,6 +18,20 @@ export default class AnalyticsController extends Controller {
     }
   }
 
+  private async getCountryFromIP(ip: string) {
+    try {
+      const response = await fetch(`https://api.iplocation.net?ip=${ip}`);
+      if (! response.ok) {
+        throw new ExternalServiceError(response.statusText);
+      }
+
+      const { country_name } = await response.json();
+      return country_name === '' ? undefined : country_name;
+    } catch (error) {
+      this.app.log.error(`Failed to get country from IP: ${error}`);
+    }
+  }
+
   async track(request: KuzzleRequest) {
     const product = request.getString('p');
     const user = request.getString('u');
@@ -23,7 +39,22 @@ export default class AnalyticsController extends Controller {
     const version = request.getString('v');
     const tags = request.getBody();
 
-    const trackingPayload = { action, product, tags, user, version };
+    const trackingPayload = { 
+      action,
+      product,
+      tags,
+      // To uniformize the tracking data, we hash the user id here
+      user: crypto.createHash('sha256').update(user).digest('hex'), 
+      version
+    };
+
+    if (request.context.connection.misc.headers['x-real-ip']) {
+      const country = await this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']);
+
+      if (country) {
+        trackingPayload.tags = { ...trackingPayload.tags, country }
+      }
+    }
 
     this.app.log.debug(`Analytics data reveived: ${JSON.stringify(trackingPayload)}`);
     const doc = await this.app.sdk.document.create(
