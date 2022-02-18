@@ -1,6 +1,6 @@
-import { Backend, CollectionMappings, JSONObject, KuzzleRequest, MappingsProperties, Mutex } from 'kuzzle';
+import { Backend, CollectionMappings, JSONObject, MappingsProperties, Mutex } from 'kuzzle';
 import { merge } from 'lodash';
-import AnalyticsController from './controllers/AnalyticsController';
+import TelemetryController from './controllers/TelemetryController';
 
 /**
  * Kepler Configuration format
@@ -56,7 +56,7 @@ export default class Kepler extends Backend {
   constructor(name = 'kepler') {
     super(name);
     this.applicationConfig = merge(this.applicationConfig, this.config.content.application);
-    this.controller.use(new AnalyticsController(this));
+    this.controller.use(new TelemetryController(this));
   }
 
   public async start() {
