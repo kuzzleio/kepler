@@ -97,8 +97,8 @@ export default class KeplerCompanion {
     try {
       await this.sdk.connect();
       await this.sdk.query({
-        controller: this.mode === 'browser' ? 'telemetry': 'analytics',
-        action: this.mode === 'browser' ? 'register': 'track',
+        controller: 'telemetry',
+        action: 'register',
         a: opts.action,
         p: opts.product,
         v: opts.version,
