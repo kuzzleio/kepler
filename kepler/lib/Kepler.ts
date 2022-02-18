@@ -1,4 +1,4 @@
-import { Backend, CollectionMappings, JSONObject, MappingsProperties, Mutex } from 'kuzzle';
+import { Backend, CollectionMappings, JSONObject, KuzzleRequest, MappingsProperties, Mutex } from 'kuzzle';
 import { merge } from 'lodash';
 import AnalyticsController from './controllers/AnalyticsController';
 
@@ -57,6 +57,17 @@ export default class Kepler extends Backend {
     super(name);
     this.applicationConfig = merge(this.applicationConfig, this.config.content.application);
     this.controller.use(new AnalyticsController(this));
+
+    // Register an inline adblock friendly controller to prevent 
+    // the adblockers from blocking the API due to the route name
+    this.controller.register('telemetry', {
+      actions: {
+        register: {
+          handler: this._controllers['analytics'].actions.track.handler,
+          http: [{ verb: 'post', path: 'telemetry/register' }]
+        }
+      }
+    });
   }
 
   public async start() {

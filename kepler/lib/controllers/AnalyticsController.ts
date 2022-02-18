@@ -48,10 +48,10 @@ export default class AnalyticsController extends Controller {
       version
     };
 
-    if (request.context.connection.misc.headers['x-real-ip']) {
+    if (request.context.connection.misc.headers['x-real-ip'] !== undefined) {
       const country = await this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']);
 
-      if (country) {
+      if (country !== undefined) { 
         trackingPayload.tags = { ...trackingPayload.tags, country }
       }
     }
