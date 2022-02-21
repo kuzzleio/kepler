@@ -101,7 +101,9 @@ export default class KeplerCompanion {
         },
       });
     }
-    catch (error) {}
+    catch (error) {
+      // Do nothing
+    }
   }
 
   private sendHttpRequest ({ method, path, params, body }: {
