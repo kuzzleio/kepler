@@ -10,7 +10,7 @@ export default class TelemetryController extends Controller {
 
     this.definition = {
       actions: {
-        track: {
+        register: {
           handler: async (request: KuzzleRequest) => await this.track(request),
           http: [{ verb: 'post', path: 'telemetry/register' }]
         }
