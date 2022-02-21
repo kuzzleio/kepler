@@ -1,13 +1,13 @@
 import getMAC from 'getmac';
-import { Http, Kuzzle } from 'kuzzle-sdk';
+
 const crypto = typeof window === 'undefined' ? require('crypto') : window.crypto;
 
 export type KeplerCompanionConfiguration = {
-  host?: string;
-  port?: number;
-  ssl?: boolean;
-  telemetryPath?: string;
-  enabled?: boolean;
+  host: string;
+  port: number;
+  ssl: boolean;
+  enabled: boolean;
+  timeout: number;
 };
 
 export type TelemetryOpts = {
@@ -32,22 +32,16 @@ function generateUniqueIdForBrowser(): string {
 }
 
 export default class KeplerCompanion {
-  private sdk: Kuzzle;
   public config: KeplerCompanionConfiguration = {
     host: 'kepler.app.kuzzle.io',
     port: 443,
     ssl: true,
     enabled: true,
+    timeout: 500,
   };
 
-  constructor(config = {}) {
+  constructor(config: Partial<KeplerCompanionConfiguration> = {}) {
     this.config = { ...this.config, ...config };
-    this.sdk = new Kuzzle(
-      new Http(
-        this.config.host,
-        { port: this.config.port, ssl: this.config.ssl }
-      )
-    );
   }
 
   get mode(): 'node' | 'browser' {
@@ -76,7 +70,11 @@ export default class KeplerCompanion {
     this.config.enabled = false;
   }
 
-  public add(opts: TelemetryOpts): Promise<unknown> | void {
+  /**
+   * Add telemetry.
+   * Never returns a rejected promise
+   */
+  public async add (opts: TelemetryOpts): Promise<void> {
     if (!this.config.enabled) {
       return;
     }
@@ -86,24 +84,71 @@ export default class KeplerCompanion {
       opts.tags.ci = true;
     }
 
-    this._add(opts).catch(() => { /* Analytics should not interfer with user process */ });
+    const user = this.getUserId(opts.product);
+
+    try {
+      await this.sendHttpRequest({
+        method: 'POST',
+        path: '/_/telemetry/register',
+        params: {
+          a: opts.action,
+          p: opts.product,
+          v: opts.version,
+          u: user,
+        },
+        body: {
+          t: opts.tags,
+        },
+      });
+    }
+    catch (error) {}
   }
 
-  private async _add(opts: TelemetryOpts): Promise<void> {
-    const user = this.getUserId(opts.product);
-    try {
-      await this.sdk.connect();
-      await this.sdk.query({
-        controller: 'telemetry',
-        action: 'register',
-        a: opts.action,
-        p: opts.product,
-        v: opts.version,
-        u: user,
-        body: opts.tags || {},
+  private sendHttpRequest ({ method, path, params, body }: {
+    method: string,
+    path: string,
+    params: any,
+    body: any,
+  }) {
+    const queryArgs = new URLSearchParams(params);
+    const url = `http${this.config.ssl ? 's' : ''}://${this.config.host}:${this.config.port}${path}?${queryArgs}`;
+
+    if (typeof XMLHttpRequest === 'undefined') {
+      // NodeJS implementation, using http.request:
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const httpClient = require('min-req-promise');
+
+      return httpClient.request(url, method, {
+        body: JSON.stringify(body),
+        timeout: this.config.timeout
       });
-    } finally {
-      this.sdk.disconnect();
     }
+
+    // Browser implementation, using XMLHttpRequest:
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.timeout = this.config.timeout;
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 0) {
+          reject(new Error('Cannot connect to host. Is the host online?'));
+        }
+      };
+
+      xhr.open(method, url);
+
+      xhr.onload = () => {
+        try {
+          resolve(xhr.responseText);
+        }
+        catch (err) {
+          reject(err);
+        }
+      };
+
+      xhr.send(JSON.stringify(body));
+    });
   }
 }

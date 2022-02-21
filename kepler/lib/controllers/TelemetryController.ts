@@ -32,35 +32,48 @@ export default class TelemetryController extends Controller {
     }
   }
 
-  async track(request: KuzzleRequest) {
-    const product = request.getString('p');
-    const user = request.getString('u');
-    const action = request.getString('a');
-    const version = request.getString('v');
-    const tags = request.getBody();
+  /**
+   * Instantly returns to the client to avoid delay in the response
+   */
+  async track (request: KuzzleRequest) {
+    // never return a rejected promise
+    this.saveTelemetry(request);
+  }
 
-    const trackingPayload = { 
-      action,
-      product,
-      tags,
-      // To uniformize the tracking data, we hash the user id here
-      user: crypto.createHash('sha256').update(user).digest('hex'), 
-      version
-    };
+  async saveTelemetry (request: KuzzleRequest) {
+    try {
+      const product = request.getString('p');
+      const user = request.getString('u');
+      const action = request.getString('a');
+      const version = request.getString('v');
+      const tags = request.getBodyObject('t', {});
 
-    if (request.context.connection.misc.headers['x-real-ip'] !== undefined) {
-      const country = await this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']);
+      const trackingPayload = {
+        action,
+        product,
+        tags,
+        // To uniformize the tracking data, we hash the user id here
+        user: crypto.createHash('sha256').update(user).digest('hex'),
+        version
+      };
 
-      if (country !== undefined) { 
-        trackingPayload.tags = { ...trackingPayload.tags, country }
+      if (request.context.connection.misc.headers['x-real-ip'] !== undefined) {
+        const country = await this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']);
+
+        if (country !== undefined) {
+          trackingPayload.tags = { ...trackingPayload.tags, country }
+        }
       }
-    }
 
-    this.app.log.debug(`Analytics data reveived: ${JSON.stringify(trackingPayload)}`);
-    const doc = await this.app.sdk.document.create(
-      this.app.applicationConfig.analytics.index,
-      this.app.applicationConfig.analytics.collection,
-      trackingPayload);
-    this.app.log.debug(`Analytics document created: ${JSON.stringify(doc)}`);
+      this.app.log.debug(`Analytics data reveived: ${JSON.stringify(trackingPayload)}`);
+      const doc = await this.app.sdk.document.create(
+        this.app.applicationConfig.analytics.index,
+        this.app.applicationConfig.analytics.collection,
+        trackingPayload);
+      this.app.log.debug(`Analytics document created: ${JSON.stringify(doc)}`);
+    }
+    catch (error) {
+      this.app.log.error(`Failed to save telemetry data: ${error}`);
+    }
   }
 }
