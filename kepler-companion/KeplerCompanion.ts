@@ -6,11 +6,11 @@ export type KeplerCompanionConfiguration = {
   host?: string;
   port?: number;
   ssl?: boolean;
-  trackingPath?: string;
+  telemetryPath?: string;
   enabled?: boolean;
 };
 
-export type TrackingOpts = {
+export type TelemetryOpts = {
   action: string;
   product: string;
   version: string;
@@ -18,17 +18,17 @@ export type TrackingOpts = {
 }
 
 /**
- * This is a function gave by Mozilla MDN to generate 
+ * This is a function gave by Mozilla MDN to generate
  * an UUID compatible with all browsers (HTTPS AND HTTP) and using vanilla JS
  */
 function generateUniqueIdForBrowser(): string {
-  const array = new Uint32Array(8)
-  crypto.getRandomValues(array)
-  let str = ''
+  const array = new Uint32Array(8);
+  crypto.getRandomValues(array);
+  let str = '';
   for (let i = 0; i < array.length; i++) {
-    str += (i < 2 || i > 5 ? '' : '-') + array[i].toString(16).slice(-4)
+    str += (i < 2 || i > 5 ? '' : '-') + array[i].toString(16).slice(-4);
   }
-  return str
+  return str;
 }
 
 export default class KeplerCompanion {
@@ -44,7 +44,7 @@ export default class KeplerCompanion {
     this.config = { ...this.config, ...config };
     this.sdk = new Kuzzle(
       new Http(
-        this.config.host as string, 
+        this.config.host,
         { port: this.config.port, ssl: this.config.ssl }
       )
     );
@@ -76,7 +76,7 @@ export default class KeplerCompanion {
     this.config.enabled = false;
   }
 
-  public track(opts: TrackingOpts, timeout = 1000): Promise<unknown> | void {
+  public add(opts: TelemetryOpts): Promise<unknown> | void {
     if (!this.config.enabled) {
       return;
     }
@@ -86,13 +86,10 @@ export default class KeplerCompanion {
       opts.tags.ci = true;
     }
 
-    return Promise.race([
-      this._track(opts).catch(() => { /* Analytics should not interfer with user process */ }),
-      new Promise((resolve) => setTimeout(resolve, timeout))
-    ]);
+    this._add(opts).catch(() => { /* Analytics should not interfer with user process */ });
   }
 
-  private async _track(opts: TrackingOpts): Promise<void> {
+  private async _add(opts: TelemetryOpts): Promise<void> {
     const user = this.getUserId(opts.product);
     try {
       await this.sdk.connect();
