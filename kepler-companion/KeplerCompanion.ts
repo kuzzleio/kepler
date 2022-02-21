@@ -34,10 +34,9 @@ function generateUniqueIdForBrowser(): string {
 export default class KeplerCompanion {
   private sdk: Kuzzle;
   public config: KeplerCompanionConfiguration = {
-    host: 'analytics.app.kuzzle.io',
+    host: 'kepler.app.kuzzle.io',
     port: 443,
     ssl: true,
-    trackingPath: '/_/analytics/track',
     enabled: true,
   };
 
@@ -51,9 +50,13 @@ export default class KeplerCompanion {
     );
   }
 
-  private getUserId(mode: 'node' | 'browser', product: string): string {
+  get mode(): 'node' | 'browser' {
+    return typeof window !== 'undefined' ? 'browser' : 'node';
+  }
+
+  private getUserId(product?: string): string {
     let id: any;
-    switch (mode) {
+    switch (this.mode) {
       case 'node':
         id = crypto.createHash('sha256').update(getMAC()).digest('hex');
       break;
@@ -90,12 +93,12 @@ export default class KeplerCompanion {
   }
 
   private async _track(opts: TrackingOpts): Promise<void> {
-    const user = this.getUserId(typeof window !== 'undefined' ? 'browser' : 'node', opts.product);
+    const user = this.getUserId(opts.product);
     try {
       await this.sdk.connect();
       await this.sdk.query({
-        controller: 'analytics',
-        action: 'track',
+        controller: 'telemetry',
+        action: 'register',
         a: opts.action,
         p: opts.product,
         v: opts.version,

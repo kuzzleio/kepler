@@ -3,7 +3,7 @@ import Kepler from "../Kepler";
 import * as crypto from 'crypto';
 import fetch from 'node-fetch';
 
-export default class AnalyticsController extends Controller {
+export default class TelemetryController extends Controller {
   public app: Kepler;
   constructor(app: Kepler) {
     super(app);
@@ -12,7 +12,7 @@ export default class AnalyticsController extends Controller {
       actions: {
         track: {
           handler: async (request: KuzzleRequest) => await this.track(request),
-          http: [{ verb: 'post', path: 'analytics/track' }]
+          http: [{ verb: 'post', path: 'telemetry/register' }]
         }
       }
     }
@@ -48,10 +48,10 @@ export default class AnalyticsController extends Controller {
       version
     };
 
-    if (request.context.connection.misc.headers['x-real-ip']) {
+    if (request.context.connection.misc.headers['x-real-ip'] !== undefined) {
       const country = await this.getCountryFromIP(request.context.connection.misc.headers['x-real-ip']);
 
-      if (country) {
+      if (country !== undefined) { 
         trackingPayload.tags = { ...trackingPayload.tags, country }
       }
     }
