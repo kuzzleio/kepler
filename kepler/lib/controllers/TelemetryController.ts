@@ -1,7 +1,9 @@
-import { Controller, ExternalServiceError, KuzzleRequest } from "kuzzle";
-import Kepler from "../Kepler";
 import * as crypto from 'crypto';
+
+import { Controller, KuzzleRequest } from 'kuzzle';
 import geoip from 'geoip-lite';
+
+import Kepler from "../Kepler";
 
 const IPV4_REGEX = /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/gm;
 
