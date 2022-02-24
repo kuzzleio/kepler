@@ -135,7 +135,6 @@ export default class KeplerCompanion {
       const xhr = new XMLHttpRequest();
 
       xhr.timeout = this.config.timeout;
-      xhr.setRequestHeader('Content-Type', 'application/json');
 
       xhr.onreadystatechange = () => {
         if (xhr.readyState === 4 && xhr.status === 0) {
@@ -144,6 +143,7 @@ export default class KeplerCompanion {
       };
 
       xhr.open(method, url);
+      xhr.setRequestHeader('Content-Type', 'application/json');
 
       xhr.onload = () => {
         try {
