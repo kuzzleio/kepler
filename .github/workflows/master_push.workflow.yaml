@@ -12,7 +12,7 @@ env:
 jobs:
   lint:
     name: Lint ${{ matrix.project }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
       matrix: 
@@ -38,7 +38,7 @@ jobs:
 
   publish-kepler-companion:
     name: Publish Kepler Companion on NPM.js
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: [lint]
     steps:
       - uses: actions/checkout@v2
@@ -56,7 +56,7 @@ jobs:
 
   publish-kepler-image:
     name: Build and publish Kepler Docker image on Dockerhub
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: [lint]
     steps:
       - uses: actions/checkout@v2
@@ -84,7 +84,7 @@ jobs:
 
   deploy-kepler-on-kosmos:
     name: Deploy latest Kepler image on Kosmos
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: [publish-kepler-image]
     environment: Kosmos
     steps:

@@ -16,7 +16,7 @@ env:
 jobs:
   lint:
     name: Lint ${{ matrix.project }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: true
       matrix: 
@@ -41,7 +41,7 @@ jobs:
         run: npm ci --prefix ${{ matrix.project }} && npm run test:lint --prefix ${{ matrix.project }}
   build-kepler-image:
     name: Build Kepler Docker image (to test Docker build process)
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: [lint]
     steps:
       - uses: actions/checkout@v2
